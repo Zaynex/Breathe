@@ -1,0 +1,5 @@
+.imageList {
+	width: 200px;
+	height: 600px;
+	overflow-y: scroll;
+}
