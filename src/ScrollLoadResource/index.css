@@ -3,3 +3,14 @@
 	height: 600px;
 	overflow-y: scroll;
 }
+
+.imageItem {
+	opacity: 0.2;
+}
+
+
+.loaded {
+	opacity: 1;
+	background-size: contain !important;
+	transition: all 0.5s;
+}
