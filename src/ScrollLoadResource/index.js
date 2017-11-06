@@ -8,7 +8,6 @@ const IMGARRAY = new Array(COUNT).fill('test.jpg')
 const HEIGHT = 110
 const EXTRAHEIGHT = 10
 const BASEGAP = HEIGHT + EXTRAHEIGHT
-const RANDOM_COLOR = () => '#' + (Math.random() * 0xffffff << 0).toString(16)
 const testImage = 'https://modao.cc/images/landing/homepage/new/sec3@phone.png?20171012b'
 const fetchImageResource = (src) => {
   return fetch(src).then(() => src)
@@ -65,12 +64,9 @@ export default class ScrollLoadResource extends PureComponent {
     return loadImageResourceArr
   }
 
-  renderImage = async (dom, src) => {
-    // 模拟异步操作
-    setTimeout(() => {
-      dom && (dom.style.background = `url(${src}) no-repeat center center`)
-      dom && dom.classList.add('loaded')
-    })
+  renderImage = (dom, src) => {
+    dom && (dom.style.background = `url(${src}) no-repeat center center`)
+    dom && dom.classList.add('loaded')
   }
 
   // renderImageWithBlob = async (dom, blob) => {
@@ -96,8 +92,7 @@ export default class ScrollLoadResource extends PureComponent {
         const afterFetchSrc = await fetchImageResource(testImage)
         // 这种方式就是从缓存中取数据，或者在图片资源加载完之后将其转换为 blob
         // const blobImage = await fetchImageResourceWithBlob(testImage)
-
-        await this.renderImage(this.$elem.children[imageSource].children[0], afterFetchSrc)
+        this.renderImage(this.$elem.children[imageSource].children[0], afterFetchSrc)
       })
     })
     this.lastResourceArr = currentResource
@@ -109,10 +104,10 @@ export default class ScrollLoadResource extends PureComponent {
   }
 
   getContainerRef = ref => this.$elem = ref
-  getImageContent = ref => this.$imgItem = ref
+
   render () {
     return <div ref={this.getContainerRef} className="imageList">
-      {IMGARRAY.map((v, i) => <div key={i} className="imageItem" ref={this.getImageContent} style={{ height: HEIGHT, marginBottom: EXTRAHEIGHT }}>
+      {IMGARRAY.map((v, i) => <div key={i} className="imageItem" style={{ height: HEIGHT, marginBottom: EXTRAHEIGHT }}>
         <div className="imageContent"></div><span className="imageTitle">{i}</span>
       </div>)}
     </div>
