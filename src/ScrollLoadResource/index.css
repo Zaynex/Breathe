@@ -1,16 +1,37 @@
 .imageList {
-	width: 200px;
+	width: 240px;
 	height: 600px;
+	padding: 0 20px;
 	overflow-y: scroll;
+	box-sizing: border-box;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
 }
 
 .imageItem {
-	opacity: 0.2;
+	width: 90px;
+	background: #ccc;
 }
 
+.imageContent {
+	opacity: 0.2;
+	width: 70px;
+	height: 90px;
+	margin: 0 auto;
+}
+
+.imageTitle {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 20px;
+	background: #fff;
+}
 
 .loaded {
 	opacity: 1;
-	background-size: contain !important;
 	transition: all 0.5s;
+	background-size: cover !important;
 }

@@ -3,8 +3,11 @@ import { debounce } from 'lodash'
 import { createAsyncTaskQueue } from '../utils/index'
 import './index.css'
 const COUNT = 100
+const COLUMN = 2
 const IMGARRAY = new Array(COUNT).fill('test.jpg')
-const BASEHEIGHT = 112
+const HEIGHT = 110
+const EXTRAHEIGHT = 10
+const BASEGAP = HEIGHT + EXTRAHEIGHT
 const RANDOM_COLOR = () => '#' + (Math.random() * 0xffffff << 0).toString(16)
 const testImage = 'https://modao.cc/images/landing/homepage/new/sec3@phone.png?20171012b'
 const fetchImageResource = (src) => {
@@ -27,8 +30,10 @@ export default class ScrollLoadResource extends PureComponent {
 
   componentDidMount () {
     this.offsetHeight = this.$elem.offsetHeight
-    this.firstScrrenImageCount = Math.ceil(this.offsetHeight / BASEHEIGHT)
-    const firstScreenLoadArr = [...Array(this.firstScrrenImageCount).keys()]
+
+    // 满屏容纳的图片数量
+    this.fullScrrenImageCount = Math.ceil(this.offsetHeight / BASEGAP) * COLUMN
+    const firstScreenLoadArr = [...Array(this.fullScrrenImageCount).keys()]
     this.fetchResource(firstScreenLoadArr)
     this.$elem.addEventListener('mousewheel', this.debounceMouseWheel, false)
   }
@@ -40,22 +45,20 @@ export default class ScrollLoadResource extends PureComponent {
 
   calculateLoadResource = () => {
     const scrollTop = this.$elem.scrollTop
-    // 首屏渲染图片的数量
-    this.firstScrrenImageCount = Math.ceil(this.offsetHeight / BASEHEIGHT)
     // 最终加载的图片数量（过滤滑动过程中加载的图片）
     let loadImageResourceArr = []
 
     // 针对滑动未超过一屏的情况
     if (scrollTop < this.offsetHeight) {
-      const loadScreenImageCount = Math.ceil(scrollTop / BASEHEIGHT)
+      const loadScreenImageCount = Math.ceil(scrollTop / BASEGAP) * COLUMN
       for (let i = 0; i < loadScreenImageCount; i++) {
-        loadImageResourceArr.push(this.firstScrrenImageCount + i)
+        loadImageResourceArr.push(this.fullScrrenImageCount + i)
       }
     } else {
-      const loadImageScreenIndex = Math.floor(scrollTop / BASEHEIGHT)
+      const loadImageScreenIndex = Math.floor(scrollTop / BASEGAP) * COLUMN
       // 在有些情况下，位移的顶部和底部各显示半张图片，因此会比满屏加载多一张，通过是否整除来判定
-      const renderOneMore = (scrollTop / BASEHEIGHT).toString().includes('.') ? 1 : 0
-      for (let i = 0; i < this.firstScrrenImageCount + renderOneMore; i++) {
+      const renderOneMore = (scrollTop / BASEGAP).toString().includes('.') ? 1 * COLUMN : 0
+      for (let i = 0; i < this.fullScrrenImageCount + renderOneMore; i++) {
         loadImageResourceArr.push(loadImageScreenIndex + i)
       }
     }
@@ -65,7 +68,7 @@ export default class ScrollLoadResource extends PureComponent {
   renderImage = async (dom, src) => {
     // 模拟异步操作
     setTimeout(() => {
-      dom && (dom.style.backgroundImage = `url(${src})`)
+      dom && (dom.style.background = `url(${src}) no-repeat center center`)
       dom && dom.classList.add('loaded')
     })
   }
@@ -87,14 +90,14 @@ export default class ScrollLoadResource extends PureComponent {
     currentResource.forEach(imageSource => {
       if (this.cacheResource.includes(imageSource)) return
       pushTask(async () => {
-        console.log(`fetch Resources task add ${getTaskQueueSize()}`, IMGARRAY[imageSource])
+        __ENV__ && console.log(`fetch Resources task add ${getTaskQueueSize()}`, IMGARRAY[imageSource])
         // await fetchImageResource(imageSource)
         // 确保请求的src是已经加载过的资源
         const afterFetchSrc = await fetchImageResource(testImage)
         // 这种方式就是从缓存中取数据，或者在图片资源加载完之后将其转换为 blob
         // const blobImage = await fetchImageResourceWithBlob(testImage)
 
-        await this.renderImage(this.$elem.children[imageSource], afterFetchSrc)
+        await this.renderImage(this.$elem.children[imageSource].children[0], afterFetchSrc)
       })
     })
     this.lastResourceArr = currentResource
@@ -105,11 +108,13 @@ export default class ScrollLoadResource extends PureComponent {
     this.$elem.removeEventListener('mousewheel', this.debounceMouseWheel)
   }
 
-  getRef = ref => this.$elem = ref
-
+  getContainerRef = ref => this.$elem = ref
+  getImageContent = ref => this.$imgItem = ref
   render () {
-    return <div ref={this.getRef} className="imageList">
-      {IMGARRAY.map((v, i) => <div key={i} className="imageItem" style={{ height: BASEHEIGHT, background: RANDOM_COLOR() }}>{i}</div>)}
+    return <div ref={this.getContainerRef} className="imageList">
+      {IMGARRAY.map((v, i) => <div key={i} className="imageItem" ref={this.getImageContent} style={{ height: HEIGHT, marginBottom: EXTRAHEIGHT }}>
+        <div className="imageContent"></div><span className="imageTitle">{i}</span>
+      </div>)}
     </div>
   }
 }
