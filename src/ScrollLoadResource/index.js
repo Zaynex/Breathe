@@ -4,7 +4,10 @@ import { createAsyncTaskQueue } from '../utils/index'
 import './index.css'
 const COUNT = 100
 const COLUMN = 2
-const IMGARRAY = new Array(COUNT).fill('test.jpg')
+const TESTARRAY = []
+for (let i = 0; i < COUNT; i++) {
+  TESTARRAY.push({ title: `title${i}`, src: `${i}test.img`, index: i })
+}
 const HEIGHT = 110
 const EXTRAHEIGHT = 10
 const BASEGAP = HEIGHT + EXTRAHEIGHT
@@ -32,7 +35,11 @@ export default class ScrollLoadResource extends PureComponent {
 
     // 满屏容纳的图片数量
     this.fullScrrenImageCount = Math.ceil(this.offsetHeight / BASEGAP) * COLUMN
-    const firstScreenLoadArr = [...Array(this.fullScrrenImageCount).keys()]
+    // Object.keys(Array.apply(null, { length: this.fullScrrenImageCount }))
+    // 有很大的区别，一个是 iterator 一个是非 iterator。有时间的话需要调研下
+    // const firstScreenLoadArr = [...Array(this.fullScrrenImageCount).keys()]
+
+    const firstScreenLoadArr = TESTARRAY.slice(0, this.fullScrrenImageCount)
     this.fetchResource(firstScreenLoadArr)
     this.$elem.addEventListener('mousewheel', this.debounceMouseWheel, false)
   }
@@ -51,14 +58,17 @@ export default class ScrollLoadResource extends PureComponent {
     if (scrollTop < this.offsetHeight) {
       const loadScreenImageCount = Math.ceil(scrollTop / BASEGAP) * COLUMN
       for (let i = 0; i < loadScreenImageCount; i++) {
-        loadImageResourceArr.push(this.fullScrrenImageCount + i)
+        // loadImageResourceArr.push(this.fullScrrenImageCount + i)
+
+        loadImageResourceArr.push(TESTARRAY[this.fullScrrenImageCount + i])
       }
     } else {
       const loadImageScreenIndex = Math.floor(scrollTop / BASEGAP) * COLUMN
       // 在有些情况下，位移的顶部和底部各显示半张图片，因此会比满屏加载多一张，通过是否整除来判定
       const renderOneMore = (scrollTop / BASEGAP).toString().includes('.') ? 1 * COLUMN : 0
       for (let i = 0; i < this.fullScrrenImageCount + renderOneMore; i++) {
-        loadImageResourceArr.push(loadImageScreenIndex + i)
+
+        loadImageScreenIndex + i < COUNT && loadImageResourceArr.push(TESTARRAY[loadImageScreenIndex + i])
       }
     }
     return loadImageResourceArr
@@ -77,26 +87,26 @@ export default class ScrollLoadResource extends PureComponent {
   //   }
   // }
 
-  fetchResource = (currentResource) => {
-    const { pushTask, getTaskQueueSize } = createAsyncTaskQueue()
-    __ENV__ && console.log(`currentResource`, currentResource)
-    __ENV__ && console.log(`this.lastResourceArr`, this.lastResourceArr)
-    __ENV__ && console.log(`this.cacheResource`, this.cacheResource)
-
-    currentResource.forEach(imageSource => {
-      if (this.cacheResource.includes(imageSource)) return
+  fetchResource = (resource) => {
+    const { pushTask, getTaskQueueSize, resetTaskQueue } = createAsyncTaskQueue()
+    resetTaskQueue()
+    __ENV__ && console.log(`resource`, resource)
+    __ENV__ && console.log(`cacheResource`, this.cacheResource)
+    resource.forEach(({ title, src, index }) => {
+      if (this.cacheResource.includes(src)) {
+        __ENV__ && console.log('cached')
+        return
+      }
       pushTask(async () => {
-        __ENV__ && console.log(`fetch Resources task add ${getTaskQueueSize()}`, IMGARRAY[imageSource])
-        // await fetchImageResource(imageSource)
+        __ENV__ && console.log(`fetch Resources task add ${getTaskQueueSize()}`)
         // 确保请求的src是已经加载过的资源
-        const afterFetchSrc = await fetchImageResource(testImage)
+        const fethSrc = await fetchImageResource(testImage)
+        this.renderImage(this.$elem.children[index].children[0], fethSrc)
+        this.cacheResource.push(src)
         // 这种方式就是从缓存中取数据，或者在图片资源加载完之后将其转换为 blob
         // const blobImage = await fetchImageResourceWithBlob(testImage)
-        this.renderImage(this.$elem.children[imageSource].children[0], afterFetchSrc)
-      })
+      }).then(() => console.log('load task successed'))
     })
-    this.lastResourceArr = currentResource
-    this.cacheResource = this.cacheResource.concat(currentResource)
   }
 
   componentWillUnmount () {
@@ -107,8 +117,8 @@ export default class ScrollLoadResource extends PureComponent {
 
   render () {
     return <div ref={this.getContainerRef} className="imageList">
-      {IMGARRAY.map((v, i) => <div key={i} className="imageItem" style={{ height: HEIGHT, marginBottom: EXTRAHEIGHT }}>
-        <div className="imageContent"></div><span className="imageTitle">{i}</span>
+      {TESTARRAY.map(({ title, src, index }) => <div key={index} data-src={src} className="imageItem" style={{ height: HEIGHT, marginBottom: EXTRAHEIGHT }}>
+        <div className="imageContent"></div><span className="imageTitle">{title}</span>
       </div>)}
     </div>
   }
