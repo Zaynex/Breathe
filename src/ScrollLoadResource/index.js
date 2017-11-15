@@ -28,6 +28,7 @@ export default class ScrollLoadResource extends PureComponent {
     super(props)
     this.debounceMouseWheel = debounce(this.handleMouseWheel, 500)
     this.cacheResource = []
+    this.receiveResource = []
   }
 
   componentDidMount () {
@@ -87,26 +88,33 @@ export default class ScrollLoadResource extends PureComponent {
   //   }
   // }
 
+  fetchQueue = () => {
+    if (this.receiveResource.length) {
+      const { src, index, title } = this.receiveResource.shift()
+      console.log(this.receiveResource)
+      console.log('fetch', index)
+      console.log(`cacheResource`, this.cacheResource)
+
+      // awesome test
+      // const self = this
+      // setTimeout(function () {
+      //   fetchImageResource(testImage).then(function (fetchsrc) {
+      //     self.renderImage(self.$elem.children[index].children[0], fetchsrc)
+      //     self.cacheResource.push(fetchsrc)
+      //   }).then(() => self.fetchQueue())
+      // }, 3000)
+      fetchImageResource(testImage).then((src) => {
+        this.renderImage(this.$elem.children[index].children[0], src)
+        this.cacheResource.push(src)
+      }).then(() => this.fetchQueue())
+    }
+  }
+
   fetchResource = (resource) => {
-    const { pushTask, getTaskQueueSize, resetTaskQueue } = createAsyncTaskQueue()
-    resetTaskQueue()
     __ENV__ && console.log(`resource`, resource)
     __ENV__ && console.log(`cacheResource`, this.cacheResource)
-    resource.forEach(({ title, src, index }) => {
-      if (this.cacheResource.includes(src)) {
-        __ENV__ && console.log('cached')
-        return
-      }
-      pushTask(async () => {
-        __ENV__ && console.log(`fetch Resources task add ${getTaskQueueSize()}`)
-        // 确保请求的src是已经加载过的资源
-        const fethSrc = await fetchImageResource(testImage)
-        this.renderImage(this.$elem.children[index].children[0], fethSrc)
-        this.cacheResource.push(src)
-        // 这种方式就是从缓存中取数据，或者在图片资源加载完之后将其转换为 blob
-        // const blobImage = await fetchImageResourceWithBlob(testImage)
-      }).then(() => console.log('load task successed'))
-    })
+    this.receiveResource = resource
+    this.fetchQueue()
   }
 
   componentWillUnmount () {
