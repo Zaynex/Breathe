@@ -1,42 +1,70 @@
-import React, { PureComponent } from 'react'
 import PropTypes from 'prop-types'
-const PI2 = Math.PI * 2
-const transform2rgba = (arr) => {
-  arr[3] = parseFloat(arr[3] / 255)
-  return 'rgba(' + arr.join(', ') + ')'
-}
+import React, { PureComponent } from 'react'
+
+
+// const _widgetsByName = MB.currentScreen._widgetsByName.image_view
+// const { width: imageSourceWidth, height: imageSourceHeight, imageSrc } = _widgetsByName
+
 export default class ColorPicker extends PureComponent {
   static propTypes = {
     src: PropTypes.string.isRequired,
     imageWidth: PropTypes.number.isRequired,
     imageHeight: PropTypes.number.isRequired,
     originalRadius: PropTypes.number,
-    scale: PropTypes.number,
+    glassScale: PropTypes.number,
     deviceRatio: PropTypes.number,
     getColor: PropTypes.func,
+    cancelPickerMode: PropTypes.func,
   }
   static defaultProps = {
     originalRadius: 100,
-    scale: 3,
+    glassScale: 3,
     imageWidth: 700,
     imageHeight: 400,
-    deviceRatio: 2,
-    src: "/sec3.png",
-    getColor: (color) => console.log(`[color]:${color}`)
+    deviceRatio: window.devicePixelRatio,
+    src: '/sec3.png',
+    getColor: (color) => console.log(color)
   }
 
   constructor (props) {
     super(props)
     this.originalRadius = props.originalRadius * props.deviceRatio
-    this.scale = props.scale
+    this.glassScale = props.glassScale
     this.getElemRef = ref => this.$elem = ref
     this.originalRectangle = {}
     this.centerPoint = {}
+    fetch(props.src).then(res => res.blob()).then(blob => {
+      this.objURL = URL.createObjectURL(blob)
+    })
   }
+
   componentDidMount () {
-    const { src, imageHeight, imageWidth, deviceRatio } = this.props
     // Do not use this.context, 不然你会爆炸的
     this.ctx = this.$elem.getContext('2d')
+    this.renderCanvasBackground()
+    document.addEventListener('keydown', this.handleKeyDown, false)
+  }
+
+  componentDidUpdate () {
+    this.clearAll()
+    this.renderCanvasBackground()
+  }
+
+  componentWillUnmount () {
+    this.clearAll()
+    document.removeEventListener('keydown', this.handleKeyDown)
+  }
+
+  renderCanvas = (event, glassScale) => {
+    this.clearAll()
+    this.renderCanvasBackground()
+    this.getColorAndDrawGlass(event, glassScale)
+  }
+
+  renderCanvasBackground = () => {
+    const { src, imageWidth, imageHeight, deviceRatio } = this.props
+    const imageSource = new Image()
+    // 因为画布大小 * ratio, 所以在 draw 时注意需要 * ratio
     // 控制实际 DOM 大小
     this.$elem.style.width = imageWidth + "px"
     this.$elem.style.height = imageHeight + "px"
@@ -45,66 +73,50 @@ export default class ColorPicker extends PureComponent {
     this.$elem.width = imageWidth * deviceRatio
     this.$elem.height = imageHeight * deviceRatio
 
-    // 确保资源加载成功后再render
-    fetch(src).then(this.renderCanvansBackground)
-    document.addEventListener('keydown', this.handleKeyDown, false)
+    imageSource.src = this.objURL ? this.objURL : src
+    if (!imageSource.complete) {
+      imageSource.onload = () => this.ctx.drawImage(imageSource, 0, 0, imageWidth * deviceRatio, imageHeight * deviceRatio)
+    } else {
+      this.ctx.drawImage(imageSource, 0, 0, imageWidth * deviceRatio, imageHeight * deviceRatio)
+    }
   }
 
-  componentWillUnmount () {
-    this.clearAll()
-    document.removeEventListener('keydown', this.handleKeyDown)
-  }
-
-  renderCanvas = (event, scale) => {
-    this.clearAll()
-    this.renderCanvasBackground()
-    this.getColorAndDrawGlass(event, scale)
-  }
-
-  renderCanvasBackground = () => {
-    const { src, imageWidth, imageHeight, deviceRatio } = this.props
-    const imageSource = new Image()
-    imageSource.src = src
-    // 因为画布大小 * ratio, 所以在 draw 时注意需要 * ratio
-    this.ctx.drawImage(imageSource, 0, 0, imageWidth * deviceRatio, imageHeight * deviceRatio)
-  }
-
-  getColorAndDrawGlass = (e, scale) => {
+  getColorAndDrawGlass = (e, glassScale) => {
+    const { deviceRatio } = this.props
     // 距离视口的位移
     const { left, top } = this.$elem.getBoundingClientRect()
     // 存储当前鼠标移动位置的在canvas中的点,以此数据作为圆心
+    // 让圆心跟随鼠标移动。由于目前 画布是 * device 状态，每移动 1px 实际在 画布移动 1 * px
     this.centerPoint = {
-      centerX: Math.floor(e.clientX - left),
-      centerY: Math.floor(e.clientY - top)
+      centerX: Math.floor(e.clientX - left) * deviceRatio,
+      centerY: Math.floor(e.clientY - top) * deviceRatio
     }
     this.calOriginalRectangle()
-    this.drawGlass(scale)
+    this.drawGlass(glassScale)
     this.pickColor()
   }
 
   calOriginalRectangle = () => {
-    const { deviceRatio } = this.props
     const { centerX, centerY } = this.centerPoint
     console.log(`[centerX:${centerX}], [centerY:${centerY}]`)
 
     // 当前点击的x,y即为绘制区域的left 和 top 坐标点
-    this.originalRectangle.originalX = centerX * deviceRatio - this.originalRadius
-    this.originalRectangle.originalY = centerY * deviceRatio - this.originalRadius
+    this.originalRectangle.originalX = centerX - this.originalRadius
+    this.originalRectangle.originalY = centerY - this.originalRadius
     // 绘制区域的宽高，即为半径的两倍
     this.originalRectangle.originalW = this.originalRadius * 2
     this.originalRectangle.originalH = this.originalRadius * 2
   }
 
-  drawGlass = (scale) => {
-    const { deviceRatio } = this.props
+  drawGlass = (glassScale) => {
     const { centerX, centerY } = this.centerPoint
     const { originalH, originalW, originalX, originalY } = this.originalRectangle
     console.log(`this.originalRectangle:`, originalX, originalY, originalW, originalH)
     this.scaleGlassRectangle = {
-      scaleX: centerX * deviceRatio - originalW * scale / 2,
-      scaleY: centerY * deviceRatio - originalH * scale / 2,
-      scaleW: originalW * scale,
-      scaleH: originalH * scale
+      scaleX: centerX - originalW * glassScale / 2,
+      scaleY: centerY - originalH * glassScale / 2,
+      scaleW: originalW * glassScale,
+      scaleH: originalH * glassScale
     }
     const { scaleX, scaleY, scaleW, scaleH } = this.scaleGlassRectangle
 
@@ -112,17 +124,9 @@ export default class ColorPicker extends PureComponent {
 
     this.ctx.save()
     this.ctx.beginPath()
-    // 让圆心跟随鼠标移动。由于目前 画布是 * device 状态，每移动 1px 实际在 画布移动 1 * px
-    this.ctx.arc(centerX * deviceRatio, centerY * deviceRatio, this.originalRadius, 0, PI2, false)
+    this.ctx.arc(centerX, centerY, this.originalRadius, 0, PI2, false)
     this.ctx.clip()
 
-    // const imageData = this.ctx.getImageData(centerX, centerY, this.originalRadius, this.originalRadius)
-
-    // let newCanvas = document.createElement('canvas')
-    // let newxtx = newCanvas.getContext('2d')
-    // newCanvas.width = newCanvas.height = this.originalRadius
-    // newxtx.drawImage(imageData, 0, 0, this.originalRadius, this.originalRadius)
-    // document.body.appendChild(newCanvas)
     this.ctx.drawImage(this.$elem,
       originalX, originalY,
       originalW, originalH,
@@ -144,7 +148,7 @@ export default class ColorPicker extends PureComponent {
 
     this.ctx.strokeStyle = gradient
     this.ctx.lineWidth = 5
-    this.ctx.arc(centerX * deviceRatio, centerY * deviceRatio, this.originalRadius, 0, PI2, false)
+    this.ctx.arc(centerX, centerY, this.originalRadius, 0, PI2, false)
     this.ctx.stroke()
   }
 
@@ -160,12 +164,14 @@ export default class ColorPicker extends PureComponent {
   }
 
   handlemouseMove = (e) => {
-    this.renderCanvas(e, this.scale)
+    this.renderCanvas(e, this.glassScale)
   }
 
   handleKeyDown = (e) => {
+    const { cancelPickerMode } = this.props
     if (e.key.toLowerCase() === 'escape') {
       this.clearAll()
+      cancelPickerMode && cancelPickerMode()
     }
   }
 
@@ -180,27 +186,27 @@ export default class ColorPicker extends PureComponent {
   }
 
   pickColor = () => {
-    const { x, y } = this.centerPoint
-    const { data } = this.ctx.getImageData(x, y, 1, 1)
+    const { centerX, centerY } = this.centerPoint
+    const { data } = this.ctx.getImageData(centerX, centerY, 1, 1)
     this.color = transform2rgba(data)
   }
 
   render () {
-    const { imageWidth, imageHeight, deviceRatio } = this.props
-    // width 和 height 为 canvas 画布大小
-    // css 设定的为DOM层面的大小
-    // 具体 画布和DOM大小关系转换 见 --->  待补充
-    return <div>
-      <canvas
-        ref={this.getElemRef}
-        onMouseLeave={this.handleMouseLeave}
-        onMouseMove={this.handlemouseMove}
-        onMouseDown={this.handleMouseDown}
-      >
-        Your browser doesn't support canvas
-    </canvas>
-      <img src="/sec3.png" alt="" width="700" height="400" style={{ marginTop: "50px", border: "5px solid blue" }} />
-      <img src="" id="tmg" />
-    </div>
+    const { imageHeight, imageWidth } = this.props
+    return <canvas
+      ref={this.getElemRef}
+      onMouseLeave={this.handleMouseLeave}
+      onMouseMove={this.handlemouseMove}
+      onMouseDown={this.handleMouseDown}
+      style={{ width: imageWidth, height: imageHeight }}
+    >{"Your browser doesn't support canvas"}</canvas>
   }
 }
+
+
+const transform2rgba = (arr) => {
+  arr[3] = parseFloat(arr[3] / 255)
+  return 'rgba(' + arr.join(', ') + ')'
+}
+
+const PI2 = Math.PI * 2
