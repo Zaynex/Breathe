@@ -1,0 +1,6 @@
+.canvas {
+  margin: 0 auto;
+  cursor: none;
+  position: absolute;
+  z-index: 2147483648;
+}
