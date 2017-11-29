@@ -15,7 +15,7 @@ export default class ColorPicker extends PureComponent {
   }
   static defaultProps = {
     originalRadius: 100,
-    glassScale: 3,
+    glassScale: 25,
     src: 'sec3.png',
     imageHeight: 400,
     imageWidth: 700,
@@ -44,7 +44,6 @@ export default class ColorPicker extends PureComponent {
     const { cancelPickerMode } = this.props
     this.ctx = this.$elem.getContext('2d')
 
-    // 确保资源加载成功后再render
     this.image.onload = () => this.renderCanvasBackground()
     this.image.onerror = () => cancelPickerMode()
     document.addEventListener('keydown', this.handleKeyDown, false)
@@ -71,14 +70,11 @@ export default class ColorPicker extends PureComponent {
 
   renderCanvasBackground = () => {
     const { imageWidth, imageHeight, deviceRatio } = this.props
-    // 因为画布大小 * ratio, 所以在 draw 时注意需要 * ratio
-    // 控制实际 DOM 大小
-    this.$elem.style.width = imageWidth + "px"
-    this.$elem.style.height = imageHeight + "px"
+    this.$elem.style.width = imageWidth + 'px'
+    this.$elem.style.height = imageHeight + 'px'
 
     this.image.width = imageWidth + 'px'
     this.image.height = imageHeight + 'px'
-    // 控制画布大小
     this.$elem.width = imageWidth * deviceRatio
     this.$elem.height = imageHeight * deviceRatio
 
@@ -94,8 +90,6 @@ export default class ColorPicker extends PureComponent {
   }
 
   calCenterPoint = (e) => {
-    // 存储当前鼠标移动位置的在canvas中的点,以此数据作为圆心
-    // 让圆心跟随鼠标移动。由于目前 画布是 * device 状态，每移动 1px 实际在 画布移动 1 * px
     const { deviceRatio } = this.props
     const { left, top } = this.$elem.getBoundingClientRect()
     this.centerPoint = {
@@ -106,10 +100,8 @@ export default class ColorPicker extends PureComponent {
 
   calOriginalRectangle = () => {
     const { centerX, centerY } = this.centerPoint
-    // 当前点击的x,y即为绘制区域的left 和 top 坐标点
     this.originalRectangle.originalX = centerX - this.originalRadius
     this.originalRectangle.originalY = centerY - this.originalRadius
-    // 绘制区域的宽高，即为半径的两倍
     this.originalRectangle.originalW = this.originalRadius * 2
     this.originalRectangle.originalH = this.originalRadius * 2
   }
@@ -129,19 +121,17 @@ export default class ColorPicker extends PureComponent {
   drawGlass = () => {
     this.ctx.save()
 
-    // 绘制放大镜中图像
     this.drawGlassImage()
 
-    // 绘制当前颜色文字
     this.drawColorFont()
 
     this.ctx.restore()
 
-    // 绘制中心矩形点
     this.drawCenterRect()
 
-    // 绘制放大镜边框
     this.drawGlassBorder()
+
+
   }
 
   drawGlassImage = () => {
@@ -151,6 +141,11 @@ export default class ColorPicker extends PureComponent {
     this.ctx.beginPath()
     this.ctx.arc(centerX, centerY, this.originalRadius, 0, PI2, false)
     this.ctx.clip()
+
+    this.ctx.imageSmoothingEnabled = false
+    this.ctx.webkitImageSmoothingEnabled = false
+    this.ctx.msImageSmoothingEnabled = false
+    this.ctx.mozImageSmoothingEnabled = false
 
     this.ctx.drawImage(this.$elem,
       originalX, originalY,
@@ -182,11 +177,12 @@ export default class ColorPicker extends PureComponent {
   drawCenterRect = () => {
     const { glassScale } = this.props
     const { centerX, centerY } = this.centerPoint
-    // 绘制中心点
     this.ctx.beginPath()
-    this.ctx.lineWidth = devicePixelRatio * 0.5 * glassScale
+    this.ctx.lineWidth = 1
     this.ctx.strokeStyle = '#000'
-    this.ctx.strokeRect(centerX - devicePixelRatio * 1 * glassScale, centerY - devicePixelRatio * 1 * glassScale, devicePixelRatio * glassScale * 2, devicePixelRatio * glassScale * 2)
+    // this.ctx.strokeRect(centerX - devicePixelRatio * 1, centerY - devicePixelRatio * 1, devicePixelRatio * 2, devicePixelRatio * 2)
+    this.ctx.strokeRect(centerX - 10, centerY - 10, 20, 20)
+
     this.ctx.stroke()
   }
 
@@ -197,12 +193,12 @@ export default class ColorPicker extends PureComponent {
     this.ctx.beginPath()
     this.ctx.fillStyle = 'rgba(0, 0, 0, .7)'
     const { R, G, B } = this.RGB
-    this.ctx.fillRect(centerX - scaleW / 2 + 20 * glassScale * devicePixelRatio, centerY + 10 * glassScale * devicePixelRatio, scaleW, 15 * devicePixelRatio * glassScale)
+    this.ctx.fillRect(centerX - scaleW / 2 + 20 * devicePixelRatio, centerY + 20 * devicePixelRatio, scaleW, 40 * devicePixelRatio)
     this.ctx.fillStyle = '#fff'
-    this.ctx.lineWidth = `${0.1 * devicePixelRatio * glassScale}`
-    this.ctx.font = `${4 * devicePixelRatio * glassScale}px Arial`
+    this.ctx.lineWidth = `${0.1 * devicePixelRatio}`
+    this.ctx.font = `${12 * devicePixelRatio}px Arial`
     this.ctx.textAlign = 'center'
-    this.ctx.fillText(`R:${R} G:${G} B:${B}`, centerX, centerY + 15 * glassScale * devicePixelRatio)
+    this.ctx.fillText(`R:${R} G:${G} B:${B}`, centerX, centerY + 45 * devicePixelRatio)
     this.ctx.stroke()
   }
 
