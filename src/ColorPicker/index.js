@@ -190,17 +190,13 @@ export default class ColorPicker extends PureComponent {
     // width 和 height 为 canvas 画布大小
     // css 设定的为DOM层面的大小
     // 具体 画布和DOM大小关系转换 见 --->  待补充
-    return <div>
-      <canvas
-        ref={this.getElemRef}
-        onMouseLeave={this.handleMouseLeave}
-        onMouseMove={this.handlemouseMove}
-        onMouseDown={this.handleMouseDown}
-      >
-        Your browser doesn't support canvas
+    return <canvas
+      ref={this.getElemRef}
+      onMouseLeave={this.handleMouseLeave}
+      onMouseMove={this.handlemouseMove}
+      onMouseDown={this.handleMouseDown}
+    >
+      Your browser doesn't support canvas
     </canvas>
-      <img src="/sec3.png" alt="" width="700" height="400" style={{ marginTop: "50px", border: "5px solid blue" }} />
-      <img src="" id="tmg" />
-    </div>
   }
 }
