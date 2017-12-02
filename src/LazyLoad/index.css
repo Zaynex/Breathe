@@ -1,0 +1,18 @@
+.lazy-load {
+  width: 300px;
+  height: 500px;
+  overflow: hidden;
+  overflow-y: scroll;
+  margin: 0 auto;
+  box-sizing: border-box;
+  border: 2px solid red;
+}
+.load-item-box {
+  background: #eee;
+  margin-bottom: 20px;
+}
+
+.load-item-content {
+  text-align: center;
+  line-height: 100%;
+}
