@@ -1,5 +1,7 @@
 .container {
   position: relative;
+  box-sizing: border-box;
+  cursor: none;
 }
 
 .glass-container {
@@ -13,7 +15,8 @@
   top: 0;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid red;
+  border: 5px solid black;
+  box-sizing: border-box;
   pointer-events: none;
   display: none;
   z-index: 1;

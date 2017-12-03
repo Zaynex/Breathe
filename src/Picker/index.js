@@ -3,9 +3,8 @@ import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
 import './index.css'
 
-
-// todo 给中间增加标记
-
+// todo 解决上边距渲染问题
+const INIT_NUMBER = 10
 export default class Picker extends Component {
   static propTypes = {
     src: PropTypes.string,
@@ -13,13 +12,15 @@ export default class Picker extends Component {
     height: PropTypes.number,
     glassHeight: PropTypes.number,
     glassWidth: PropTypes.number,
+    scale: PropTypes.number,
   }
   static defaultProps = {
-    src: "/sec3.png",
-    width: 500,
-    height: 350,
+    src: "/test.jpeg",
+    width: 750,
+    height: 300,
     glassWidth: 200,
-    glassHeight: 200
+    glassHeight: 200,
+    scale: 1
   }
   constructor (props) {
     super(props)
@@ -57,27 +58,32 @@ export default class Picker extends Component {
 
   handleMove = (e) => {
     this.calculateCenterPoint(e)
-    const { width, height, glassHeight, glassWidth } = this.props
+    const { width, height, glassHeight, glassWidth, scale } = this.props
     const { centerX, centerY } = this.centerPoint
     this.glassContainer.style.display != 'block' && (this.glassContainer.style.display = 'block')
 
-    this.glassLeft = (centerX - 100) + 'px'
-    this.glassTop = (centerY - 100) + 'px'
+    this.glassLeft = (centerX - glassWidth / 2) + 'px'
+    this.glassTop = (centerY - glassHeight / 2) + 'px'
 
     this.glassContainer.style.left = this.glassLeft
     this.glassContainer.style.top = this.glassTop
 
     this.glassCtx.clearRect(0, 0, glassWidth, glassHeight)
-
+    if (scale < 1) {
+      console.warn(`Can't make the galss scale small than 1, It will make bed invision`)
+    }
+    const finallyScale = INIT_NUMBER * (scale < 1 ? 1 : scale)
     drawImageSmoothingEnable(this.glassCtx, false)
     this.glassCtx.drawImage(this.imageCanvas,
-      Math.round(centerX - 100 / 10), Math.round(centerY - 100 / 10),
-      200 / 10, 200 / 10,
+      Math.floor(centerX - glassWidth / finallyScale), Math.floor(centerY - glassHeight / finallyScale),
+      glassWidth / finallyScale, glassHeight / finallyScale,
       0, 0,
-      200, 200
+      glassWidth, glassHeight
     )
 
-    drawGrid(this.glassCtx, 'lightgray', 10, 10);
+    drawGrid(this.glassCtx, 'lightgray', INIT_NUMBER, INIT_NUMBER)
+    this.calculateCenterPoint(e)
+    drawCenterRect(this.glassCtx, 'black', glassWidth / 2 - INIT_NUMBER, glassHeight / 2 - INIT_NUMBER, INIT_NUMBER, INIT_NUMBER)
     this.getColor()
 
   }
@@ -162,4 +168,10 @@ const drawImageSmoothingEnable = (context, enable) => {
   context.webkitImageSmoothingEnabled = enable
   context.msImageSmoothingEnabled = enable
   context.imageSmoothingEnabled = enable
+}
+
+const drawCenterRect = (context, color, x, y, width, height) => {
+  context.strokeStyle = color
+  context.lineWidth = 1
+  context.strokeRect(x, y, 10, 10)
 }
