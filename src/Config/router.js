@@ -9,6 +9,7 @@ import {
 import ScrollLoadResource from '../ScrollLoadResource'
 import ColorPicker from '../ColorPicker'
 import LazyLoad from '../LazyLoad'
+import Picker from '../Picker'
 const routes = [{
   path: '/scroll',
   extra: false,
@@ -21,6 +22,9 @@ const routes = [{
   path: '/lazy',
   extra: false,
   component: LazyLoad
+}, {
+  path: '/picker',
+  component: Picker
 }]
 
 const RouteConfig = () => (
@@ -30,6 +34,8 @@ const RouteConfig = () => (
         <li><Link to="/srcoll">ScrollLoadResource</Link></li>
         <li><Link to="/canvas">Canvas</Link></li>
         <li><Link to="/lazy">Lazy</Link></li>
+        <li><Link to="/picker">Picker</Link></li>
+
       </ul>
       <Switch>
         {routes.map(({ component, path, extra }) => {

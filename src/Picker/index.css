@@ -1,0 +1,20 @@
+.container {
+  position: relative;
+}
+
+.glass-container {
+  // position: absolute;
+  left: 0;
+  top: 0;
+}
+.glass {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid red;
+  pointer-events: none;
+  display: none;
+  z-index: 1;
+}

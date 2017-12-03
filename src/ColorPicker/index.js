@@ -74,8 +74,8 @@ export default class ColorPicker extends PureComponent {
     const { left, top } = this.$elem.getBoundingClientRect()
     // 存储当前鼠标移动位置的在canvas中的点,以此数据作为圆心
     this.centerPoint = {
-      centerX: Math.floor(e.clientX - left),
-      centerY: Math.floor(e.clientY - top)
+      centerX: Math.round(e.clientX - left),
+      centerY: Math.round(e.clientY - top)
     }
     this.calOriginalRectangle()
     this.drawGlass(scale)
