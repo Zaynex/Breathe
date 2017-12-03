@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
 import './index.css'
 
-// todo 解决上边距渲染问题
+// todo 解决上边距渲染问题 safrai
 const INIT_NUMBER = 10
 export default class Picker extends Component {
   static propTypes = {
@@ -16,8 +16,8 @@ export default class Picker extends Component {
   }
   static defaultProps = {
     src: "/test.jpeg",
-    width: 750,
-    height: 300,
+    width: 350,
+    height: 200,
     glassWidth: 200,
     glassHeight: 200,
     scale: 1
@@ -62,20 +62,21 @@ export default class Picker extends Component {
     const { centerX, centerY } = this.centerPoint
     this.glassContainer.style.display != 'block' && (this.glassContainer.style.display = 'block')
 
-    this.glassLeft = (centerX - glassWidth / 2) + 'px'
-    this.glassTop = (centerY - glassHeight / 2) + 'px'
+    this.glassLeft = Math.floor(centerX - glassWidth / 2) + 'px'
+    this.glassTop = Math.floor(centerY - glassHeight / 2 - 1) + 'px'
 
     this.glassContainer.style.left = this.glassLeft
     this.glassContainer.style.top = this.glassTop
 
+    if (centerY <= 0) { this.clearGlassRect() }
     this.glassCtx.clearRect(0, 0, glassWidth, glassHeight)
     if (scale < 1) {
-      console.warn(`Can't make the galss scale small than 1, It will make bed invision`)
+      console.warn(`Can't make the galss scale less than 1, It will make bed invision`)
     }
     const finallyScale = INIT_NUMBER * (scale < 1 ? 1 : scale)
     drawImageSmoothingEnable(this.glassCtx, false)
     this.glassCtx.drawImage(this.imageCanvas,
-      Math.floor(centerX - glassWidth / finallyScale), Math.floor(centerY - glassHeight / finallyScale),
+      Math.floor(centerX - (glassWidth / 2) / finallyScale), Math.floor(centerY - (glassHeight / 2) / finallyScale),
       glassWidth / finallyScale, glassHeight / finallyScale,
       0, 0,
       glassWidth, glassHeight
@@ -83,7 +84,7 @@ export default class Picker extends Component {
 
     drawGrid(this.glassCtx, 'lightgray', INIT_NUMBER, INIT_NUMBER)
     this.calculateCenterPoint(e)
-    drawCenterRect(this.glassCtx, 'black', glassWidth / 2 - INIT_NUMBER, glassHeight / 2 - INIT_NUMBER, INIT_NUMBER, INIT_NUMBER)
+    drawCenterRect(this.glassCtx, 'black', Math.floor(glassWidth / 2 - INIT_NUMBER), Math.floor(glassHeight / 2 - INIT_NUMBER), INIT_NUMBER, INIT_NUMBER)
     this.getColor()
 
   }
@@ -98,10 +99,14 @@ export default class Picker extends Component {
     this.getColor()
   }
 
-  handleMouseLeave = (e) => {
+  clearGlassRect = () => {
     const { width, height, glassHeight, glassWidth } = this.props
     this.glassCtx.clearRect(0, 0, glassWidth, glassHeight)
     this.glassContainer.style.display = 'none'
+  }
+
+  handleMouseLeave = () => {
+    this.clearGlassRect()
   }
   render () {
     const { width, height, glassWidth, glassHeight } = this.props
@@ -172,6 +177,6 @@ const drawImageSmoothingEnable = (context, enable) => {
 
 const drawCenterRect = (context, color, x, y, width, height) => {
   context.strokeStyle = color
-  context.lineWidth = 1
-  context.strokeRect(x, y, 10, 10)
+  context.lineWidth = 0.5
+  context.strokeRect(x, y, width, height)
 }
