@@ -6,15 +6,9 @@ import {
   Link,
   Switch
 } from 'react-router-dom'
-import ScrollLoadResource from '../ScrollLoadResource'
-import ColorPicker from '../ColorPicker'
 import LazyLoad from '../LazyLoad'
 import TestPicker from '../TestPicker'
 const routes = [{
-  path: '/canvas',
-  extra: false,
-  component: ColorPicker
-}, {
   path: '/lazy',
   extra: false,
   component: LazyLoad

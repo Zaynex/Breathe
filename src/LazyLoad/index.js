@@ -11,9 +11,6 @@ const LISTEN_FLAG = 'data-lazyload-listened'
 const listeners = []
 let pending = []
 export default class LazyLoad extends PureComponent {
-  constructor (props) {
-    super(props)
-  }
 
   render () {
     return <div className='lazy-load'>
@@ -67,7 +64,7 @@ class Lazy extends Component {
 
     finalLazyLoadHandler = debounce(lazyLoadHandlers, 300)
     const listenerCount = 1 + (+parentNode.getAttribute(LISTEN_FLAG))
-    if (listenerCount == 1) {
+    if (listenerCount === 1) {
       parentNode.addEventListener('scroll', finalLazyLoadHandler, false)
     }
     parentNode.setAttribute(LISTEN_FLAG, listenerCount)

@@ -1,6 +1,5 @@
-import React, { PureComponent, Component } from 'react'
+import React, { PureComponent } from 'react'
 import PropTypes from 'prop-types'
-import ReactDOM from 'react-dom'
 import './index.css'
 
 const INIT_NUMBER = 10
@@ -9,7 +8,7 @@ const VISIBLE = 'visible'
 const LIGHTGRAY = 'lightgray'
 const CENTERGRID = 'black'
 
-export default class Picker extends Component {
+export default class Picker extends PureComponent {
   static propTypes = {
     src: PropTypes.string,
     width: PropTypes.number,
@@ -70,9 +69,9 @@ export default class Picker extends Component {
   }
 
   handleMove = (e) => {
-    this.state.visibility == HIDDEN && this.setState({ visibility: VISIBLE })
+    this.state.visibility === HIDDEN && this.setState({ visibility: VISIBLE })
     this.calculateCenterPoint(e)
-    const { width, height, glassHeight, glassWidth, scale } = this.props
+    const { glassHeight, glassWidth, scale } = this.props
     const { centerX, centerY } = this.centerPoint
     const glassLeft = `${Math.floor(centerX - glassWidth / 2)}px`
     const glassTop = `${Math.floor(centerY - glassHeight / 2)}px`
@@ -116,7 +115,7 @@ export default class Picker extends Component {
   }
 
   clearGlassRect = () => {
-    const { width, height, glassHeight, glassWidth } = this.props
+    const { glassHeight, glassWidth } = this.props
     this.glassCtx.clearRect(0, 0, glassWidth, glassHeight)
     this.setState({ visibility: HIDDEN })
   }
