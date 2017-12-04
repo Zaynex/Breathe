@@ -1,14 +1,10 @@
-.container {
+.picker-container {
   position: relative;
   box-sizing: border-box;
+  margin-left: 50px;
   cursor: none;
 }
 
-.glass-container {
-  // position: absolute;
-  left: 0;
-  top: 0;
-}
 .glass {
   position: absolute;
   left: 0;
@@ -18,6 +14,6 @@
   border: 5px solid black;
   box-sizing: border-box;
   pointer-events: none;
-  display: none;
   z-index: 1;
+  cursor: none;
 }

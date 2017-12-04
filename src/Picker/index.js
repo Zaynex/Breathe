@@ -3,8 +3,12 @@ import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
 import './index.css'
 
-// todo 解决上边距渲染问题 safrai
 const INIT_NUMBER = 10
+const HIDDEN = 'hidden'
+const VISIBLE = 'visible'
+const LIGHTGRAY = 'lightgray'
+const CENTERGRID = 'black'
+
 export default class Picker extends Component {
   static propTypes = {
     src: PropTypes.string,
@@ -13,23 +17,32 @@ export default class Picker extends Component {
     glassHeight: PropTypes.number,
     glassWidth: PropTypes.number,
     scale: PropTypes.number,
+    deviceRatio: PropTypes.number,
   }
   static defaultProps = {
-    src: "/test.jpeg",
-    width: 350,
-    height: 200,
+    src: "/sec3.png",
+    width: 1300,
+    height: 769,
     glassWidth: 200,
     glassHeight: 200,
-    scale: 1
+    scale: 1,
+    deviceRatio: 1
   }
+
   constructor (props) {
     super(props)
     this.getImageRef = ref => this.imageCanvas = ref
     this.glassCanvasRef = ref => this.glassCanvas = ref
     this.glassContainerRef = ref => this.glassContainer = ref
-    this.rectRef = ref => this.rectContainer = ref
     this.image = new Image()
     this.image.src = props.src
+    this.image.crossOrigin = "Anonymous"
+    this.image.setAttribute('crossOrigin', '')
+    this.state = {
+      visibility: HIDDEN,
+      glassLeft: 0,
+      glassTop: 0,
+    }
   }
 
   componentDidMount () {
@@ -39,13 +52,13 @@ export default class Picker extends Component {
   }
 
   renderImageCanvas = () => {
-    const { width, height } = this.props
-    this.imageCtx.drawImage(this.image, 0, 0, width, height)
-    this.offlineCanvas = document.createElement("canvas")
-    this.offlineCanvas.width = width
-    this.offlineCanvas.height = height
-    this.offlineCtx = this.offlineCanvas.getContext('2d')
-    this.offlineCtx.drawImage(this.image, 0, 0, width, height)
+    const { width, height, deviceRatio } = this.props
+    this.imageCtx.drawImage(this.image, 0, 0, width * deviceRatio, height * deviceRatio)
+    // this.offlineCanvas = document.createElement("canvas")
+    // this.offlineCanvas.width = width
+    // this.offlineCanvas.height = height
+    // this.offlineCtx = this.offlineCanvas.getContext('2d')
+    // this.offlineCtx.drawImage(this.image, 0, 0, width, height)
   }
 
   calculateCenterPoint = (e) => {
@@ -57,87 +70,85 @@ export default class Picker extends Component {
   }
 
   handleMove = (e) => {
+    this.state.visibility == HIDDEN && this.setState({ visibility: VISIBLE })
     this.calculateCenterPoint(e)
     const { width, height, glassHeight, glassWidth, scale } = this.props
     const { centerX, centerY } = this.centerPoint
-    this.glassContainer.style.display != 'block' && (this.glassContainer.style.display = 'block')
+    const glassLeft = `${Math.floor(centerX - glassWidth / 2)}px`
+    const glassTop = `${Math.floor(centerY - glassHeight / 2)}px`
 
-    this.glassLeft = Math.floor(centerX - glassWidth / 2) + 'px'
-    this.glassTop = Math.floor(centerY - glassHeight / 2 - 1) + 'px'
+    this.setState({
+      glassLeft,
+      glassTop
+    })
 
-    this.glassContainer.style.left = this.glassLeft
-    this.glassContainer.style.top = this.glassTop
-
-    if (centerY <= 0) { this.clearGlassRect() }
+    // fix upper
+    if (centerY < 0) { this.clearGlassRect() }
     this.glassCtx.clearRect(0, 0, glassWidth, glassHeight)
     if (scale < 1) {
       console.warn(`Can't make the galss scale less than 1, It will make bed invision`)
     }
+
     const finallyScale = INIT_NUMBER * (scale < 1 ? 1 : scale)
     drawImageSmoothingEnable(this.glassCtx, false)
+
     this.glassCtx.drawImage(this.imageCanvas,
       Math.floor(centerX - (glassWidth / 2) / finallyScale), Math.floor(centerY - (glassHeight / 2) / finallyScale),
-      glassWidth / finallyScale, glassHeight / finallyScale,
-      0, 0,
+      Math.floor(glassWidth / finallyScale), Math.floor(glassHeight / finallyScale),
+      -INIT_NUMBER, -INIT_NUMBER,
       glassWidth, glassHeight
     )
-
-    drawGrid(this.glassCtx, 'lightgray', INIT_NUMBER, INIT_NUMBER)
-    this.calculateCenterPoint(e)
-    drawCenterRect(this.glassCtx, 'black', Math.floor(glassWidth / 2 - INIT_NUMBER), Math.floor(glassHeight / 2 - INIT_NUMBER), INIT_NUMBER, INIT_NUMBER)
+    drawGrid(this.glassCtx, LIGHTGRAY, INIT_NUMBER, INIT_NUMBER)
+    drawCenterRect(this.glassCtx, CENTERGRID, Math.floor(glassWidth / 2 - INIT_NUMBER), Math.floor(glassHeight / 2 - INIT_NUMBER), INIT_NUMBER, INIT_NUMBER)
     this.getColor()
-
   }
 
   getColor = () => {
+    const { getColor } = this.props
     const { centerX, centerY } = this.centerPoint
     const { data } = this.imageCtx.getImageData(centerX - 1, centerY - 1, 1, 1)
     const result = transform2rgba(data)
-    this.testColorRef.style.background = result
+    getColor && getColor(result)
   }
-  handleClick = (e) => {
+
+  handleClick = () => {
     this.getColor()
   }
 
   clearGlassRect = () => {
     const { width, height, glassHeight, glassWidth } = this.props
     this.glassCtx.clearRect(0, 0, glassWidth, glassHeight)
-    this.glassContainer.style.display = 'none'
+    this.setState({ visibility: HIDDEN })
   }
 
   handleMouseLeave = () => {
     this.clearGlassRect()
   }
-  render () {
-    const { width, height, glassWidth, glassHeight } = this.props
-    return <div>
-      <div className="container">
-        <canvas
-          width={width}
-          height={height}
-          ref={this.getImageRef}
-          onMouseMove={this.handleMove}
-          onMouseLeave={this.handleMouseLeave}
-          onClick={this.handleClick}
-          className="image">
-        </canvas>
-        <div className="glass-container">
-        </div>
-        <div className="glass"
-          ref={this.glassContainerRef}
-          style={{ width: glassWidth, height: glassHeight }}>
-          <canvas
-            ref={this.glassCanvasRef}
-            width={glassWidth}
-            height={glassHeight}>
-          </canvas>
-        </div>
-        <span className="rect"
-          ref={this.rectRef}
-        ></span>
 
+  render () {
+    const { width, height, glassWidth, glassHeight, deviceRatio } = this.props
+    const { visibility, glassLeft, glassTop } = this.state
+    // want use offline canvas so there have much test canvas
+    return <div className="picker-container">
+      <canvas
+        width={width * deviceRatio}
+        height={height * deviceRatio}
+        ref={this.getImageRef}
+        onMouseMove={this.handleMove}
+        onMouseLeave={this.handleMouseLeave}
+        onClick={this.handleClick}
+        style={{ width, height }}
+        className="image">
+      </canvas>
+      <div className="glass"
+        ref={this.glassContainerRef}
+        style={{ width: glassWidth, height: glassHeight, visibility, left: glassLeft, top: glassTop }}>
+        <canvas
+          ref={this.glassCanvasRef}
+          width={glassWidth}
+          height={glassHeight}>
+        </canvas>
       </div>
-      <div ref={ref => this.testColorRef = ref} style={{ width: 100, height: 100 }}></div>
     </div>
   }
 }
@@ -148,10 +159,9 @@ const transform2rgba = (arr) => {
   return 'rgba(' + arr.join(', ') + ')'
 }
 
-
 const drawGrid = (context, color, stepx, stepy) => {
-  context.strokeStyle = color;
-  context.lineWidth = 0.5;
+  context.strokeStyle = color
+  context.lineWidth = 0.5
 
   for (let i = stepx + 0.5; i < context.canvas.width; i += stepx) {
     context.beginPath()
@@ -177,6 +187,6 @@ const drawImageSmoothingEnable = (context, enable) => {
 
 const drawCenterRect = (context, color, x, y, width, height) => {
   context.strokeStyle = color
-  context.lineWidth = 0.5
+  context.lineWidth = 1
   context.strokeRect(x, y, width, height)
 }

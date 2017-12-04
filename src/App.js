@@ -5,7 +5,7 @@ class App extends Component {
   render () {
     return (
       <div className="container">
-        <h1>React Demos that I code from work</h1>
+        <h1>React Demos</h1>
         <RouterConfig />
       </div>
     )
