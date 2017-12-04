@@ -2,6 +2,7 @@
   width: 300px;
   height: 500px;
   overflow: hidden;
+  overflow-x: scroll;
   overflow-y: scroll;
   margin: 0 auto;
   box-sizing: border-box;
