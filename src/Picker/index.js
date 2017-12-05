@@ -16,7 +16,7 @@ export default class Picker extends PureComponent {
     glassHeight: PropTypes.number,
     glassWidth: PropTypes.number,
     scale: PropTypes.number,
-    deviceRatio: PropTypes.number,
+    pickColor: PropTypes.func,
   }
   static defaultProps = {
     src: "/sec3.png",
@@ -25,22 +25,19 @@ export default class Picker extends PureComponent {
     glassWidth: 200,
     glassHeight: 200,
     scale: 1,
-    deviceRatio: 1
   }
 
   constructor (props) {
     super(props)
+    this.iamgeContainerRef = ref => this.image = ref
     this.getImageRef = ref => this.imageCanvas = ref
     this.glassCanvasRef = ref => this.glassCanvas = ref
     this.glassContainerRef = ref => this.glassContainer = ref
-    this.image = new Image()
-    this.image.src = props.src
-    this.image.crossOrigin = "Anonymous"
-    this.image.setAttribute('crossOrigin', '')
     this.state = {
       visibility: HIDDEN,
       glassLeft: 0,
       glassTop: 0,
+      color: '#fff'
     }
   }
 
@@ -51,17 +48,12 @@ export default class Picker extends PureComponent {
   }
 
   renderImageCanvas = () => {
-    const { width, height, deviceRatio } = this.props
-    this.imageCtx.drawImage(this.image, 0, 0, width * deviceRatio, height * deviceRatio)
-    // this.offlineCanvas = document.createElement("canvas")
-    // this.offlineCanvas.width = width
-    // this.offlineCanvas.height = height
-    // this.offlineCtx = this.offlineCanvas.getContext('2d')
-    // this.offlineCtx.drawImage(this.image, 0, 0, width, height)
+    const { width, height } = this.props
+    this.imageCtx.drawImage(this.image, 0, 0, width, height)
   }
 
   calculateCenterPoint = (e) => {
-    const { left, top } = this.imageCanvas.getBoundingClientRect()
+    const { left, top } = this.image.getBoundingClientRect()
     this.centerPoint = {
       centerX: Math.floor(e.clientX - left),
       centerY: Math.floor(e.clientY - top)
@@ -69,12 +61,13 @@ export default class Picker extends PureComponent {
   }
 
   handleMove = (e) => {
-    this.state.visibility === HIDDEN && this.setState({ visibility: VISIBLE })
+    this.image.complete && this.state.visibility === HIDDEN && this.setState({ visibility: VISIBLE })
+
     this.calculateCenterPoint(e)
     const { glassHeight, glassWidth, scale } = this.props
     const { centerX, centerY } = this.centerPoint
-    const glassLeft = `${Math.floor(centerX - glassWidth / 2)}px`
-    const glassTop = `${Math.floor(centerY - glassHeight / 2)}px`
+    const glassLeft = Math.floor(centerX - glassWidth / 2)
+    const glassTop = Math.floor(centerY - glassHeight / 2)
 
     this.setState({
       glassLeft,
@@ -103,11 +96,12 @@ export default class Picker extends PureComponent {
   }
 
   getColor = () => {
-    const { getColor } = this.props
+    const { pickColor } = this.props
     const { centerX, centerY } = this.centerPoint
-    const { data } = this.imageCtx.getImageData(centerX - 1, centerY - 1, 1, 1)
-    const result = transform2rgba(data)
-    getColor && getColor(result)
+    const { data } = this.imageCtx.getImageData(centerX, centerY, 1, 1)
+    const color = transform2rgba(data)
+    this.setState({ color })
+    pickColor && pickColor(color)
   }
 
   handleClick = () => {
@@ -125,28 +119,39 @@ export default class Picker extends PureComponent {
   }
 
   render () {
-    const { width, height, glassWidth, glassHeight, deviceRatio } = this.props
-    const { visibility, glassLeft, glassTop } = this.state
-    // want use offline canvas so there have much test canvas
-    return <div className="picker-container">
+    const { width, height, glassWidth, glassHeight, src } = this.props
+    const { visibility, glassLeft, glassTop, color } = this.state
+    return <div className="mb-picker-container">
+      <img
+        ref={this.iamgeContainerRef}
+        className="mb-picker-image"
+        crossOrigin="anonymous"
+        src={src}>
+      </img>
       <canvas
-        width={width * deviceRatio}
-        height={height * deviceRatio}
+        width={width}
+        height={height}
         ref={this.getImageRef}
         onMouseMove={this.handleMove}
         onMouseLeave={this.handleMouseLeave}
         onClick={this.handleClick}
-        style={{ width, height }}
-        className="image">
+        style={{ width, height, opacity: 0 }}>
       </canvas>
-      <div className="glass"
+      <div className="mb-glass"
         ref={this.glassContainerRef}
         style={{ width: glassWidth, height: glassHeight, visibility, left: glassLeft, top: glassTop }}>
         <canvas
           ref={this.glassCanvasRef}
           width={glassWidth}
-          height={glassHeight}>
+          height={glassHeight}
+          style={{ width: glassWidth, height: glassHeight }}>
         </canvas>
+        <div
+          style={{ width: glassWidth, height: glassHeight / 4, top: glassHeight / 2 + 20 }}
+          className="mb-glass-text">
+          <div className="mb-rgba-color">{color}</div>
+          <div className="mb-hex-color">{rgb2hex_a(color).hex}</div>
+        </div>
       </div>
     </div>
   }
@@ -156,6 +161,18 @@ export default class Picker extends PureComponent {
 const transform2rgba = (arr) => {
   arr[3] = parseFloat(arr[3] / 255)
   return 'rgba(' + arr.join(', ') + ')'
+}
+
+const rgb2hex_a = (rgb) => {
+  const result = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+(\.\d)?)[\s+]?/i)
+  return (result && result.length >= 4) ?
+    {
+      hex: "#" +
+        ("0" + parseInt(result[1], 10).toString(16)).slice(-2) +
+        ("0" + parseInt(result[2], 10).toString(16)).slice(-2) +
+        ("0" + parseInt(result[3], 10).toString(16)).slice(-2),
+      o: +result[4]
+    } : rgb
 }
 
 const drawGrid = (context, color, stepx, stepy) => {

@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react'
 import Picker from '../Picker'
+import './index.css'
 export default class TestPicker extends PureComponent {
 
   constructor (props) {
@@ -14,7 +15,7 @@ export default class TestPicker extends PureComponent {
     return <div>
       <Picker
         pickColor={this.pickColor}
-        src="https://github.com/Zaynex/Breathe/blob/master/public/sec3.png" />
+      />
       <div className="test-color" style={{ background: color }}></div>
     </div>
   }

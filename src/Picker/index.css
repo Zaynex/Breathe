@@ -1,19 +1,35 @@
-.picker-container {
+.mb-picker-container {
   position: relative;
   box-sizing: border-box;
   margin-left: 50px;
   cursor: none;
 }
 
-.glass {
+.mb-picker-image {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+.mb-glass {
   position: absolute;
   left: 0;
   top: 0;
   border-radius: 50%;
   overflow: hidden;
   border: 5px solid black;
-  box-sizing: border-box;
   pointer-events: none;
   z-index: 1;
+  box-sizing: container-box;
   cursor: none;
+}
+
+.mb-glass-text {
+  position: absolute;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  text-align: center;
+  font-size: 14px;
 }

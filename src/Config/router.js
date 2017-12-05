@@ -29,7 +29,6 @@ const RouteConfig = () => (
         {routes.map(({ component, path, extra }) => {
           return <Route path={path} component={component} key={path} extra={extra} />
         })}
-        <Redirect from="/" to="/picker" />
       </Switch>
     </div>
   </Router>
