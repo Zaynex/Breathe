@@ -15,7 +15,7 @@ export default class TestPicker extends PureComponent {
     return <div>
       <Picker
         pickColor={this.pickColor}
-      />
+        src="https://zaynex.github.io/Breathe/sec3.png" />
       <div className="test-color" style={{ background: color }}></div>
     </div>
   }
