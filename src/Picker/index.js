@@ -5,8 +5,9 @@ import './index.css'
 const INIT_NUMBER = 10
 const HIDDEN = 'hidden'
 const VISIBLE = 'visible'
-const LIGHTGRAY = 'lightgray'
-const CENTERGRID = 'black'
+const GRID_COLOR = 'lightgray'
+const CENTERGRID_COLOR = 'black'
+const DEFAULT_COLOR = '#fff'
 
 export default class Picker extends PureComponent {
   static propTypes = {
@@ -22,22 +23,22 @@ export default class Picker extends PureComponent {
     src: "/sec3.png",
     width: 1300,
     height: 769,
-    glassWidth: 200,
-    glassHeight: 200,
+    glassWidth: 160,
+    glassHeight: 160,
     scale: 1,
+    pickColor: color => console.log(color)
   }
 
   constructor (props) {
     super(props)
     this.iamgeContainerRef = ref => this.image = ref
-    this.getImageRef = ref => this.imageCanvas = ref
+    this.getImageCanvasRef = ref => this.imageCanvas = ref
     this.glassCanvasRef = ref => this.glassCanvas = ref
-    this.glassContainerRef = ref => this.glassContainer = ref
     this.state = {
       visibility: HIDDEN,
       glassLeft: 0,
       glassTop: 0,
-      color: '#fff'
+      color: DEFAULT_COLOR
     }
   }
 
@@ -90,8 +91,8 @@ export default class Picker extends PureComponent {
       -INIT_NUMBER, -INIT_NUMBER,
       glassWidth, glassHeight
     )
-    drawGrid(this.glassCtx, LIGHTGRAY, INIT_NUMBER, INIT_NUMBER)
-    drawCenterRect(this.glassCtx, CENTERGRID, Math.floor(glassWidth / 2 - INIT_NUMBER), Math.floor(glassHeight / 2 - INIT_NUMBER), INIT_NUMBER, INIT_NUMBER)
+    drawGrid(this.glassCtx, GRID_COLOR, INIT_NUMBER, INIT_NUMBER)
+    drawCenterRect(this.glassCtx, CENTERGRID_COLOR, Math.floor(glassWidth / 2 - INIT_NUMBER), Math.floor(glassHeight / 2 - INIT_NUMBER), INIT_NUMBER, INIT_NUMBER)
     this.getColor()
   }
 
@@ -100,8 +101,8 @@ export default class Picker extends PureComponent {
     const { centerX, centerY } = this.centerPoint
     const { data } = this.imageCtx.getImageData(centerX, centerY, 1, 1)
     const color = transform2rgba(data)
-    this.setState({ color })
     pickColor && pickColor(color)
+    this.setState({ color })
   }
 
   handleClick = () => {
@@ -131,14 +132,13 @@ export default class Picker extends PureComponent {
       <canvas
         width={width}
         height={height}
-        ref={this.getImageRef}
+        ref={this.getImageCanvasRef}
         onMouseMove={this.handleMove}
         onMouseLeave={this.handleMouseLeave}
         onClick={this.handleClick}
         style={{ width, height, opacity: 0 }}>
       </canvas>
       <div className="mb-glass"
-        ref={this.glassContainerRef}
         style={{ width: glassWidth, height: glassHeight, visibility, left: glassLeft, top: glassTop }}>
         <canvas
           ref={this.glassCanvasRef}
