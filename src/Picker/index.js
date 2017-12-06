@@ -160,7 +160,7 @@ export default class Picker extends PureComponent {
 
 const transform2rgba = (arr) => {
   arr[3] = parseFloat(arr[3] / 255)
-  return 'rgba(' + arr.join(', ') + ')'
+  return `rgba(${arr.join(', ')})`
 }
 
 const rgb2hex_a = (rgb) => {
