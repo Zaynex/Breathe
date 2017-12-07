@@ -9,6 +9,10 @@ import {
 import LazyLoad from '../LazyLoad'
 import TestPicker from '../TestPicker'
 const routes = [{
+  path: '/',
+  extra: false,
+  component: TestPicker
+}, {
   path: '/lazy',
   extra: false,
   component: LazyLoad

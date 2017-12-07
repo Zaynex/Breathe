@@ -205,4 +205,22 @@ const drawCenterRect = (context, color, x, y, width, height) => {
   context.strokeStyle = color
   context.lineWidth = 1
   context.strokeRect(x, y, width, height)
+  // context.beginPath()
+  // context.strokeStyle = color
+  // context.lineWidth = 1
+  // context.moveTo(x, y)
+  // context.lineTo(x + width, y)
+  // context.lineTo(x + width, y + height)
+  // context.lineTo(x, y + height)
+  // context.lineTo(x, y)
+  // context.stroke()
+  // context.beginPath()
+  // context.lineWidth = 2
+  // context.strokeStyle = 'rgba(255,255,255,0.8)'
+  // context.moveTo(x - 2, y - 2)
+  // context.lineTo(x + width + 2, y - 2)
+  // context.lineTo(x + width + 2, y + 2 + height)
+  // context.lineTo(x - 2, y + height + 2)
+  // context.lineTo(x - 2, y - 2)
+  // context.stroke()
 }
