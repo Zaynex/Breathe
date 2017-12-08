@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react'
+import React, { PureComponent, Component } from 'react'
 import PropTypes from 'prop-types'
 import './index.css'
 
@@ -9,7 +9,7 @@ const GRID_COLOR = 'lightgray'
 const CENTERGRID_COLOR = 'black'
 const DEFAULT_COLOR = '#fff'
 
-export default class Picker extends PureComponent {
+export default class Picker extends Component {
   static propTypes = {
     src: PropTypes.string,
     width: PropTypes.number,
@@ -47,6 +47,7 @@ export default class Picker extends PureComponent {
     this.glassCtx = this.glassCanvas.getContext('2d')
     this.image.onload = () => this.renderImageCanvas()
   }
+
 
   renderImageCanvas = () => {
     const { width, height } = this.props
