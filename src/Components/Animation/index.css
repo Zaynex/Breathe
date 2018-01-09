@@ -1,0 +1,12 @@
+.message {
+  width: 100px;
+  background: red;
+}
+.reset {
+  height: 0;
+  transition: height 0.5s;
+}
+.animate {
+  transition: height 0.5s;
+  height: 100px;
+}
