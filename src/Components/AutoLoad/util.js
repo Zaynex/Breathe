@@ -1,61 +1,31 @@
+export const createAsyncTaskQueue = () => {
+  let queueTail = Promise.resolve('QUEUE_HEAD')
+  const pushTask = (asyncTask, stillRunWhenError = true) => {
 
-const __DEV__ = process.env.NODE_ENV === 'development'
-
-const MUTE_ERROR = (error) => { __DEV__ && console.error(error) }
-
-const createInsideOutPromise = () => {
-  let promiseResolve, promiseReject
-  return {
-    promise: new Promise((resolve, reject) => {
-      promiseResolve = resolve
-      promiseReject = reject
-    }),
-    resolve: (value) => {
-      if (promiseResolve === undefined) return
-      const resolve = promiseResolve
-      promiseResolve = promiseReject = undefined
-      return resolve(value)
-    },
-    reject: (error) => {
-      if (promiseReject === undefined) return
-      const reject = promiseReject
-      promiseResolve = promiseReject = undefined
-      return reject(error)
+    let currentTask = queueTail.then(asyncTask)
+    // 如果发生错误依然继续 task 链
+    if (stillRunWhenError) {
+      queueTail = currentTask.catch(console.log)
+    } else {
+      // 拦截队伍中存在的 error,但不影响队伍继续
+      queueTail = currentTask
     }
+
+    return queueTail
   }
-}
-
-const createQueueStatus = (size = 0, isValid = true) => ({
-  getSize: () => size,
-  increaseSize: () => ++size,
-  decreaseSize: () => --size,
-  getIsValid: () => isValid,
-  invalid: () => (isValid = false)
-})
-
-const createAsyncTaskQueue = (onQueueError = MUTE_ERROR) => {
-  let queueStatus, queueTail
-  const resetTaskQueue = () => {
-    queueStatus && queueStatus.invalid()
-    queueStatus = createQueueStatus()
+  const clearQueue = () => {
     queueTail = Promise.resolve('QUEUE_HEAD')
   }
-  const getTaskQueueSize = () => queueStatus.getSize()
-  const pushTask = (asyncTask) => { // task is async function
-    const { promise, resolve } = createInsideOutPromise()
-    const taskPromise = queueTail.then(asyncTask)
-    taskPromise
-      .catch(onQueueError) // should not re-throw error for the queue to keep running
-      .then(() => {
-        queueStatus.decreaseSize()
-        queueStatus.getIsValid() && resolve()
-      }) // the promise chain is not chained up directly
-    queueStatus.increaseSize()
-    queueTail = promise
-    return taskPromise
-  }
-  resetTaskQueue()
-  return { resetTaskQueue, getTaskQueueSize, pushTask }
+  return { pushTask, clearQueue }
 }
 
-export { createAsyncTaskQueue }
+// 图片加载失败后继续 resolve
+export const loadImageAsync = (image, src) => {
+  return new Promise((resolve, reject) => {
+    image.src = src
+    image.onload = () => {
+      resolve()
+    }
+    image.onerror = () => reject('image load false')
+  })
+}

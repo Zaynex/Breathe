@@ -151,9 +151,6 @@ const checkOverflowVisbile = (component, parentNode) => {
   const interSectionTop = Math.max(parentTop, 0)
   const interSectionHeight = Math.min(windowInnerHeight, parentTop + parentHeight) - interSectionTop
 
-  console.log(`[interSectionTop]`, interSectionTop)
-  console.log(`[interSectionHeight]`, interSectionHeight)
-
   let top
   let height
   try {

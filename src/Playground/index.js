@@ -1,20 +1,26 @@
-import React from 'react'
+import React, { PureComponent, Component } from 'react'
 import { SlideBar, Animation, AutoLoad } from '../Components'
-export default () => (
-  <div>
-    <SlideBar />
-    {IMGLIST.map(src => <AutoLoad src={src} key={src} />)}
-  </div>
-)
+/**
+ * 父组件 willmount
+ * 子组件 willmount
+ * 子组件 didmount
+ * 父组件 didimount
+ *
+ */
+export default class Background extends PureComponent {
+  render () {
+    return <div>
+      {
+        IMGLIST.map(src => <AutoLoad src={src} key={src} style={{ width: 500, height: 600 }} />)
+      }
+    </div>
+  }
+}
 
 const IMGLIST = [
-  'https://modao.cc/images/landing/homepage/new/en/workspace.png?20171012b',
-  'https://modao.cc/images/landing/homepage/new/en/sec3.png?20171012b',
-  'https://modao.cc/images/landing/homepage/new/en/sec4.png?20171012b',
-  'https://modao.cc/images/landing/homepage/new/en/sec5.png?20171012b',
-  'https://modao.cc/images/landing/homepage/new/en/sec6.png?20171012b',
-  'https://modao.cc/images/landing/homepage/new/en/sec7.png?20171012b',
+  'sdasd',
   'https://cdn.dribbble.com/users/994264/screenshots/3774430/_illom.png',
-  'https://cdn.dribbble.com/users/237905/screenshots/4077568/nova-checkout-process.gif',
-  'https://cdn.dribbble.com/users/63407/screenshots/4075904/dribbble_style_women_3.png'
+  'https://cdn.dribbble.com/users/63407/screenshots/4075904/dribbble_style_women_3.png',
+  'http://n.sinaimg.cn/blog/crawl/20170803/HxCz-fyitamv4614405.jpg',
+  'http://image11.m1905.cn/mdb/uploadfile/2017/1102/thumb_1_300_410_20171102050610939941.jpg',
 ]
