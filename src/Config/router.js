@@ -9,6 +9,7 @@ import {
 import LazyLoad from '../LazyLoad'
 import Playground from '../Playground'
 import TestPicker from '../TestPicker'
+import SimpleMotion from '../SimpleMotion'
 const routes = [{
   path: '/lazy',
   extra: false,
@@ -19,6 +20,9 @@ const routes = [{
 }, {
   path: '/playgroud',
   component: Playground
+}, {
+  path: '/motion',
+  component: SimpleMotion
 }]
 
 const RouteConfig = () => (
@@ -28,6 +32,7 @@ const RouteConfig = () => (
         <li><Link to="/lazy">Lazy</Link></li>
         <li><Link to="/picker">TestPicker</Link></li>
         <li><Link to="/playgroud">Playground</Link></li>
+        <li><Link to="/motion">SimpleMotion</Link></li>
       </ul>
       <Switch>
         {routes.map(({ component, path, extra }) => {
